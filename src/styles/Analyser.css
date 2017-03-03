@@ -1,0 +1,18 @@
+.background {
+	-fx-padding: 0px 0px 0px 5px;
+}
+.list-view{
+	-fx-font-size:10;
+}
+
+.output {
+	-fx-font-size:10px;
+}
+.chart-series-line {    
+	-fx-stroke-width: 1px;
+	-fx-effect: null;
+	-fx-background-radius: 0;
+}
+.chart {
+    -fx-padding:0;
+}
