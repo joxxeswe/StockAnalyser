@@ -14,7 +14,7 @@ import javafx.beans.property.SimpleObjectProperty;
 *  @author joakim hagberg joakimhagberg87@gmail.com
  *
  */
-public class Values implements Externalizable {
+public class OHLC implements Externalizable {
 
 	/**
 	 * 
@@ -29,13 +29,13 @@ public class Values implements Externalizable {
 	
 
 	
-	public Values(){
+	public OHLC(){
 		
 	}
 
    
 	
-	public Values(Date date, double close, double high, double low, double open,
+	public OHLC(Date date, double close, double high, double low, double open,
 			double volume) {
 		setDate(date);
 		setClose(close);
@@ -45,7 +45,7 @@ public class Values implements Externalizable {
 		setVolume(volume);
 	}
 
-	public Values(Date date, double close, double high, double low, double open) {
+	public OHLC(Date date, double close, double high, double low, double open) {
 		setDate(date);
 		setClose(close);
 		setHigh(high);
@@ -55,8 +55,8 @@ public class Values implements Externalizable {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj instanceof Values) {
-			return ((Values)obj).getDate().equals(this.getDate());
+		if (obj instanceof OHLC) {
+			return ((OHLC)obj).getDate().equalsIgnoreCase(this.getDate());
 		}
 		return false;
 	}
@@ -99,7 +99,7 @@ public class Values implements Externalizable {
 		this.close = new SimpleDoubleProperty(close);
 	}
 
-	public void setDate(Date date) {
+	private void setDate(Date date) {
 		this.date = new SimpleObjectProperty<Date>(date);
 	}
 

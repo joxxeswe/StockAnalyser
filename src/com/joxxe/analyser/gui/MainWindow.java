@@ -12,11 +12,17 @@ import com.joxxe.analyser.model.stock.StockHandler;
 import com.joxxe.analyser.threadExecuter.NotifyingThread;
 import com.joxxe.analyser.threadExecuter.ThreadExecuter;
 
+import javafx.animation.FadeTransition;
+import javafx.animation.PathTransition;
+import javafx.animation.Timeline;
+import javafx.animation.TranslateTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -27,10 +33,15 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.MoveTo;
+import javafx.scene.shape.Path;
 import javafx.stage.Stage;
 import javafx.util.Callback;
+import javafx.util.Duration;
+
 /**
  * Main GUI window.
+ * 
  * @author joakim hagberg joakimhagberg87@gmail.com
  *
  */
@@ -44,10 +55,10 @@ public class MainWindow extends Application {
 	}
 
 	public static final double LIST_WIDTH = 150;
-	public static final double TOP_HEIGHT = 40;
-	public static final double OUTPUT_HEIGHT = 200;
+	public static final double TOP_HEIGHT = 20;
+	public static final double OUTPUT_HEIGHT = 50;
 	protected static final int MAX_SIZE = 50;
-	private BorderPane root;
+	private BorderPane mainPane;
 	private ThreadExecuter th;
 	private StockHandler stockHandler;
 	private ResultPane resultPane;
@@ -57,24 +68,22 @@ public class MainWindow extends Application {
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
-		//set up the gui
-		root = new BorderPane();
-		Scene scene = new Scene(root, 800, 640);
+		// set up the gui
+		Pane rootPane = new Pane();
+		mainPane = new BorderPane();
+		Scene scene = new Scene(rootPane, 800, 640);
 		scene.getStylesheets().add(getClass().getResource("/styles/Analyser.css").toExternalForm());
 		// gui
 
-		VBox v = new VBox();
-		HBox h = new HBox();
-		HBox up = new HBox();
-		up.setPrefWidth(root.getWidth());
+		VBox mainBox = new VBox();
 		TextField searchField = new TextField();
 		searchField.setPrefHeight(TOP_HEIGHT);
 		output = new TextArea();
-		output.prefWidthProperty().bind(root.prefWidthProperty());
+		output.prefWidthProperty().bind(mainPane.prefWidthProperty());
 		output.setPrefHeight(OUTPUT_HEIGHT);
 		output.getStyleClass().add("output");
 		searchField.setPromptText("Search...");
-		searchField.setPrefWidth(root.getWidth());
+		searchField.setPrefWidth(mainPane.getWidth());
 		//
 		stockHandler = new StockHandler();
 		th = new ThreadExecuter();
@@ -82,22 +91,15 @@ public class MainWindow extends Application {
 		//
 		ListView<Stock> list = new ListView<Stock>(stockHandler.getStocks());
 		//
-
-		list.setPrefWidth(LIST_WIDTH);
-		list.setMinWidth(LIST_WIDTH);
 		content = new Pane();
-		content.setPrefHeight(root.getHeight()-TOP_HEIGHT-OUTPUT_HEIGHT);
-		content.prefHeightProperty().bind(root.prefHeightProperty().add(-(OUTPUT_HEIGHT+TOP_HEIGHT)));
-		content.prefWidthProperty().bind(root.prefWidthProperty().add(-LIST_WIDTH));
 		content.getStyleClass().add("background");
 		resultPane = new ResultPane(stockHandler,content);
-		stockPane = new StockPane(stockHandler,content);
-		h.prefHeightProperty().bind(root.heightProperty());
-		up.getChildren().addAll(searchField);
-		v.getChildren().addAll(menu.getMenuBar(),up, h,output);
-		h.getChildren().addAll(list, content);
-		root.setCenter(v);
-		//
+		stockPane = new StockPane(content);
+		mainPane.setTop(searchField);
+		mainPane.setCenter(content);
+		mainPane.setBottom(output);
+		rootPane.getChildren().addAll(menu.getMenuBar(), mainPane);
+
 
 		searchField.setOnAction(e -> {
 			NotifyingThread t = new NotifyingThread() {
@@ -109,7 +111,7 @@ public class MainWindow extends Application {
 						@Override
 						public void run() {
 							stockHandler.clearSearchResults();
-							MainWindow.output("Searching for: " +str);
+							MainWindow.output("Searching for: " + str);
 							for (SearchResult s : result) {
 								stockHandler.addSearchResult(s);
 							}
@@ -124,12 +126,12 @@ public class MainWindow extends Application {
 
 		list.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Stock>() {
 
-		    @Override
-		    public void changed(ObservableValue<? extends Stock> observable, Stock oldValue, Stock newValue) {
-		       //user clicked on a stock in the listview.
-		    	stockPane.setStock(newValue);
-		       setPane(1);
-		    }
+			@Override
+			public void changed(ObservableValue<? extends Stock> observable, Stock oldValue, Stock newValue) {
+				// user clicked on a stock in the listview.
+				stockPane.setStock(newValue);
+				setPane(1);
+			}
 		});
 		list.setCellFactory(new Callback<ListView<Stock>, ListCell<Stock>>() {
 
@@ -146,40 +148,89 @@ public class MainWindow extends Application {
 						}
 					}
 				};
-				//menu when right clickin on a stock
-				 ContextMenu contextMenu = new ContextMenu();
+				// menu when right clickin on a stock
+				ContextMenu contextMenu = new ContextMenu();
 				MenuItem deleteItem = new MenuItem();
-	            deleteItem.setText("Delete");
-	            deleteItem.setOnAction(event -> stockHandler.removeStock(cell.getItem()));
-	            contextMenu.getItems().addAll(deleteItem);
-	            cell.emptyProperty().addListener((obs, wasEmpty, isNowEmpty) -> {
-	                if (isNowEmpty) {
-	                    cell.setContextMenu(null);
-	                } else {
-	                    cell.setContextMenu(contextMenu);
-	                }
-	            });
+				deleteItem.setText("Delete");
+				deleteItem.setOnAction(event -> stockHandler.removeStock(cell.getItem()));
+				contextMenu.getItems().addAll(deleteItem);
+				cell.emptyProperty().addListener((obs, wasEmpty, isNowEmpty) -> {
+					if (isNowEmpty) {
+						cell.setContextMenu(null);
+					} else {
+						cell.setContextMenu(contextMenu);
+					}
+				});
 				return cell;
 			}
 		});
-		
+
 		// redirectOutput();
-		
+
 		//
 		primaryStage.setScene(scene);
 		primaryStage.show();
-		searchField.prefWidthProperty().bind(root.widthProperty());
-		content.prefWidthProperty().bind(root.widthProperty());
-		content.prefHeightProperty().bind(root.heightProperty());
-		root.requestFocus();
+		content.prefWidthProperty().bind(rootPane.widthProperty());
+		content.prefHeightProperty().bind(rootPane.heightProperty().add(-(TOP_HEIGHT+OUTPUT_HEIGHT)));
 		//
+		Pane menuLeft = createLeftMenu(200, list);
+		list.prefHeightProperty().bind(rootPane.heightProperty().add(-300));
+		rootPane.getChildren().add(menuLeft);
 		
+		
+		//
+		double y= (rootPane.getHeight()/2)-(list.getPrefHeight()/2);
+		if(y < 0 ){
+			y = 0;
+		}
+		menuLeft.setLayoutY(y);
+		menuLeft.setTranslateX(-200);
+		mainPane.requestFocus();
+
 	}
+
+	private Pane createLeftMenu(double width,ListView<Stock> list) {
+		Pane p = new Pane();
+		p.getStyleClass().add("left-menu");
+		Button btn = new Button(">");
+		HBox hbox = new HBox();
+		hbox.setAlignment(Pos.CENTER_LEFT);
+		VBox menuLeft = new VBox();
+		menuLeft.setMaxWidth(width);
+		menuLeft.setMinWidth(width);
+		list.setMaxWidth(width);
+		list.setMinWidth(width);
+		menuLeft.setFillWidth(true);
+		menuLeft.getChildren().add(list);
+		TranslateTransition openNav=new TranslateTransition(new Duration(350), p);
+        TranslateTransition closeNav=new TranslateTransition(new Duration(350), p);
+		btn.setOnAction(Event -> {
+			System.out.println("X:" + p.getTranslateX());
+			if(p.getTranslateX()<0){
+				btn.setText("<");
+				openNav.setToX(0);
+                openNav.play();
+            }else{
+            	btn.setText(">");
+                closeNav.setToX(-width);
+                closeNav.play();
+            }
+			
+
+		});
+		hbox.getChildren().addAll(menuLeft,btn);
+		p.getChildren().add(hbox);
+		
+		return p;
+	}
+
 	/**
 	 * Sets witch pane to be shown on the right side in the gui.
-	 * @param id 0-1, where 0 is the search result, 1 is the stocktab.
+	 * 
+	 * @param id
+	 *            0-1, where 0 is the search result, 1 is the stocktab.
 	 */
-	private void setPane(int id){
+	private void setPane(int id) {
 		content.getChildren().clear();
 		switch (id) {
 		case 0:
@@ -194,7 +245,6 @@ public class MainWindow extends Application {
 		}
 	}
 
-
 	public static void main(String[] args) {
 		launch(args);
 	}
@@ -208,37 +258,39 @@ public class MainWindow extends Application {
 	public void executeRunnable(NotifyingThread t) {
 		th.execute(t);
 	}
-	
+
 	/**
 	 * Method for printing text in output field.
-	 * @param text Text to print.
+	 * 
+	 * @param text
+	 *            Text to print.
 	 */
 	public static void output(String text) {
 		Platform.runLater(new Runnable() {
 
 			@Override
 			public void run() {
-				//output.insertText(0, text + "\n");
+				// output.insertText(0, text + "\n");
 				String txt = output.getText();
 				String[] lines = txt.split("\n");
 				String str = text + "\n";
-				for(int i=0;i<MAX_SIZE-1;i++){
-					if(i < lines.length){
+				for (int i = 0; i < MAX_SIZE - 1; i++) {
+					if (i < lines.length) {
 						str = str + lines[i] + "\n";
-					}else{
+					} else {
 						break;
 					}
-					
+
 				}
 				output.setText(str);
 			}
 		});
 	}
-	
+
 	/**
 	 * Method that updates all stocks.
 	 */
-	public void updateAllStocks(){
+	public void updateAllStocks() {
 		NotifyingThread t = new NotifyingThread() {
 			@Override
 			public void doRun() {
@@ -246,7 +298,7 @@ public class MainWindow extends Application {
 			}
 		};
 		this.executeRunnable(t);
-		
+
 	}
 
 	public void exit() {

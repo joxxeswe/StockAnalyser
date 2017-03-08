@@ -13,4 +13,8 @@ public class Util {
 	public static String bigNumber(double number) {
 		return (int)(number/1000) + "k";
 	}
+
+	public static double round1Decimal(double val) {
+		return (double) Math.round(val * 10) / 10;
+	}
 }

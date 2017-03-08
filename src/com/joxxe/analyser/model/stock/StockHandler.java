@@ -37,6 +37,16 @@ public class StockHandler {
 		this.searchResult = FXCollections.observableList(new ArrayList<SearchResult>());
 		this.stocks = FXCollections.observableList(new ArrayList<Stock>());
 		this.load();
+		//
+		for(Stock s : stocks){
+		//	s.sortValues(false);
+			ArrayList<OHLC> days = s.getQuoteDays();
+			System.out.println("Symbol: " + s.getName() + " last 10 days");
+			if(days.size()>20)
+			for(int i = days.size()-20;i<days.size();i++){
+				System.out.println("--->" + days.get(i).getDate());
+			}
+		}
 
 	}
 
@@ -101,7 +111,6 @@ public class StockHandler {
 			input.close();
 			file.close();
 			// addStock(new Stock("OMXS30", "SSE", "OMXS30", null));
-			MainWindow.output("Data loaded");
 		} catch (FileNotFoundException e) {
 			MainWindow.output("No data to load.");
 		} catch (IOException e) {
@@ -134,11 +143,11 @@ public class StockHandler {
 				try {
 					sDt = dt.parse("2000-01-01");
 					MainWindow.output("Update " + s.getName() + " from date: " + sDt);
-					ArrayList<Values> result = NordnetCrawler.getStockData(s.getIdentifier(), s.getMarketId(),
-							sDt);
-					for (Values v : result) {
-						s.addQouteDay(v, false);
+					ArrayList<OHLC> result = NordnetCrawler.getStockData(s.getIdentifier(), s.getMarketId(), sDt);
+					for (OHLC v : result) {
+						s.addQouteDay(v);
 					}
+					MainWindow.output("Finished updating " + s.getName());
 				} catch (ParseException e) {
 					e.printStackTrace();
 				}
@@ -147,9 +156,9 @@ public class StockHandler {
 				sDt = d;
 				sDt.setTime(sDt.getTime() - (14 * 24 * 60 * 60 * 1000));
 				MainWindow.output("Update " + s.getName() + " from date: " + sDt);
-				ArrayList<Values> result = NordnetCrawler.getStockData(s.getIdentifier(), s.getMarketId(), sDt);
-				for (Values v : result) {
-					s.addQouteDay(v, true);
+				ArrayList<OHLC> result = NordnetCrawler.getStockData(s.getIdentifier(), s.getMarketId(), sDt);
+				for (OHLC v : result) {
+					s.addQouteDay(v);
 				}
 				MainWindow.output("Finished updating " + s.getName());
 			}

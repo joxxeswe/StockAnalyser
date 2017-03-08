@@ -1,18 +1,32 @@
-.background {
-	-fx-padding: 0px 0px 0px 5px;
+.left-menu {
+	-fx-background-color:rgba(0,0,0,0.8);
+	-fx-border-radius: 0 10 10 0;
+    -fx-background-radius: 0 10 10 0;
 }
-.list-view{
+.list-view {
 	-fx-font-size:10;
+	-fx-background-color:rgba(0,0,0,0.01);
+	-fx-border:0;
+}
+.list-cell { /* <=== changed to even */
+    -fx-background-color:rgba(0,0,0,0.05);
+    -fx-text-fill:white;
+}
+.list-cell:selected, .list-cell:filled:selected {
+    -fx-background-color: black;
+    -fx-text-fill: white;
+}
+.list-view,.list-view:focused,.button:focused {
+    -fx-focus-color: transparent; 
+    -fx-background-insets: -1.4, 0, 1, 2;
+}
+.button {
+	-fx-background-color:rgba(0,0,0,0.5);
+	-fx-border-radius: 0 10 10 0;
+    -fx-background-radius: 0 10 10 0;
+    -fx-text-fill:white;
 }
 
 .output {
 	-fx-font-size:10px;
-}
-.chart-series-line {    
-	-fx-stroke-width: 1px;
-	-fx-effect: null;
-	-fx-background-radius: 0;
-}
-.chart {
-    -fx-padding:0;
 }

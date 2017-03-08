@@ -19,7 +19,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.joxxe.analyser.gui.MainWindow;
-import com.joxxe.analyser.model.stock.Values;
+import com.joxxe.analyser.model.stock.OHLC;
 /**
  * Class with static methods that crawls nordnet.se for info.
  *  @author joakim hagberg joakimhagberg87@gmail.com
@@ -36,7 +36,7 @@ public class NordnetCrawler {
 	 * @param startDate Get data from startdate until today.
 	 * @return Data for the specified stock.
 	 */
-	public static ArrayList<Values> getStockData(String identifier, String marketId, Date startDate) {
+	public static ArrayList<OHLC> getStockData(String identifier, String marketId, Date startDate) {
 		return getStockData(identifier, marketId, startDate,new Date());
 	}
 	/**
@@ -47,11 +47,12 @@ public class NordnetCrawler {
 	 * @param endDate Get data before edndate.
 	 * @return Data for the specified stock.
 	 */
-	public static ArrayList<Values> getStockData(String identifier, String marketId, Date startDate,
+	public static ArrayList<OHLC> getStockData(String identifier, String marketId, Date startDate,
 			Date endDate) {
-		ArrayList<Values> data = new ArrayList<Values>();
+		ArrayList<OHLC> data = new ArrayList<OHLC>();
 		String url = getUrl(identifier, marketId, startDate, endDate);
 		String response = NordnetCrawler.httpGET(url);
+		System.out.println("parsing url:" + url);
 		if (response != null) {
 			JSONArray r = new JSONArray(response);
 			for (Object day : r) {
@@ -67,15 +68,16 @@ public class NordnetCrawler {
 					try {
 						// add with volume
 						double volume = item.getDouble("volume");
-						data.add(new Values(d, close, high, low, open, volume));
+						data.add(new OHLC(d, close, high, low, open, volume));
 						added = true;
 					} catch (JSONException e) {
 						// add some without volume
-						System.err.println("Added without volume");
+						//System.err.println("Added without volume");
 					}
 					if (!added) {
-						data.add(new Values(d, close, high, low, open));
+						data.add(new OHLC(d, close, high, low, open));
 					}
+					
 
 				} catch (JSONException e) {
 					MainWindow.output("Error parsing row (skipping):" + item.toString());
