@@ -2,23 +2,28 @@ package com.joxxe.analyser.gui.chart;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import com.joxxe.analyser.gui.chart.indicators.AbstractIntrument;
+import com.joxxe.analyser.gui.chart.indicators.AbstractIndicator;
+import com.joxxe.analyser.gui.chart.indicators.AbstractInstrument;
+import com.joxxe.analyser.gui.chart.indicators.AbstractOnGraphInstrument;
+import com.joxxe.analyser.gui.chart.indicators.EMA;
+import com.joxxe.analyser.gui.chart.indicators.MA;
 import com.joxxe.analyser.gui.chart.indicators.RSI;
 import com.joxxe.analyser.gui.chart.indicators.Volume;
-import com.joxxe.analyser.gui.chart.indicators.trackers.AbstractTracker;
-import com.joxxe.analyser.gui.chart.indicators.trackers.MovingAverage;
 import com.joxxe.analyser.model.Util;
 import com.joxxe.analyser.model.stock.Stock;
 import com.joxxe.analyser.model.stock.OHLC;
 
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Button;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.util.Callback;
 
 /**
  * Draws a graph for a selected stock. Draws either a line graph or a
@@ -172,10 +177,10 @@ public class StockChart extends Pane {
 	public static double tooltipWidth = 100;
 	public static double toolTipHeight = 130;
 	public static boolean toolTipEnabled = false;
+	public static double instrumentGraphHeight = 80;
 	// true = mousover, false = values on top.
 	//
-	private ArrayList<AbstractIntrument> instruments;
-	private ArrayList<AbstractTracker> graphInstruments;
+	private ArrayList<AbstractIndicator> instrument;
 	private ArrayList<OHLC> stockdata;
 	private Canvas overlayCanvas;
 	private Canvas graphCanvas;
@@ -191,18 +196,16 @@ public class StockChart extends Pane {
 	private double totalHeight;
 	private double scrollValue;
 	private Volume volume;
+	private ArrayList<RemoveIndicatorButton> removeButtons;
 	private static double dateHeight = 20;
 
 	/**
 	 * Constructor, creates the graph.
 	 */
 	public StockChart() {
-		this.graphInstruments = new ArrayList<>();
-		graphInstruments.add(new MovingAverage(200, Color.INDIANRED));
-		graphInstruments.add(new MovingAverage(50, Color.GREENYELLOW));
-		this.instruments = new ArrayList<>();
+		this.removeButtons = new ArrayList<>();
+		this.instrument = new ArrayList<>();
 		volume = new Volume();
-		instruments.add(new RSI(14));
 		this.totalWidth = this.getWidth();
 		this.totalHeight = this.getHeight();
 		graphCanvas = new Canvas(totalWidth, totalHeight);
@@ -212,6 +215,33 @@ public class StockChart extends Pane {
 		pressed = false;
 		this.zoom = new Zoom();
 		scrollValue = 0;
+		addIndicator(new MA(50, Color.GREENYELLOW));
+		addIndicator(new MA(200, Color.INDIANRED));
+		addIndicator(new RSI(14, Color.INDIANRED));
+		addIndicator(new EMA(10, Color.CHOCOLATE));
+	}
+
+	public void addIndicator(AbstractIndicator i) {
+		instrument.add(i);
+		//
+		int index = instrument.size() - 1;
+		RemoveIndicatorButton b = new RemoveIndicatorButton(index);
+		removeButtons.add(b);
+		b.setOnMousePressed(new EventHandler<MouseEvent>() {
+			@Override
+			public void handle(MouseEvent event) {
+				instrument.remove(b.getIndex());
+				getChildren().remove(b);
+				removeButtons.remove(b);
+				for (int i = 0; i < removeButtons.size(); i++) {
+					if (i >= b.getIndex()) {
+						removeButtons.get(i).subIndex();
+					}
+				}
+			}
+
+		});
+		getChildren().add(b);
 	}
 
 	/**
@@ -295,58 +325,41 @@ public class StockChart extends Pane {
 		double labelWidth = 70;
 		double x = stockWidth - (labelWidth * 6) - 10;
 		double y = 20;
-		gc2.setFont(new Font(10));
-		gc2.setFill(labelColor);
-		gc2.fillText(s.getDate(), x + 5, y, labelWidth);
-		gc2.fillText("Open:" + Util.round2Decimal(s.getOpen()), x + 5 + labelWidth, y, labelWidth);
-		gc2.fillText("Close:" + Util.round2Decimal(s.getClose()), x + 5 + labelWidth * 2, y, labelWidth);
-		gc2.fillText("High:" + Util.round2Decimal(s.getHigh()), x + 5 + labelWidth * 3, y, labelWidth);
-		gc2.fillText("Low:" + Util.round2Decimal(s.getLow()), x + 5 + labelWidth * 4, y, labelWidth);
-		gc2.fillText("Volume:" + Util.bigNumber(s.getVolume()), 5, 35, 200);
-		for (int i = 1; i < instruments.size(); i++) {
-			String str = instruments.get(i).getLabel() + " "
-					+ Util.round1Decimal(instruments.get(i).getValueAtPos(xPos));
-			gc2.fillText(str, 5, 35 + (i * 15), 200);
+		double open = 0;
+		double close = 0;
+		double high = 0;
+		double low = 0;
+		double vol = 0;
+		String date = "";
+		if (s != null) {
+			date = s.getDate();
+			open = s.getOpen();
+			close = s.getClose();
+			high = s.getHigh();
+			low = s.getLow();
+			vol = s.getVolume();
 		}
-		double extraY = instruments.size() * 15;
-		for (int i = 0; i < graphInstruments.size(); i++) {
-			String str = graphInstruments.get(i).getLabel() + " "
-					+ Util.round1Decimal(graphInstruments.get(i).getValueAtPos(xPos));
-			gc2.fillText(str, 5, 35 + extraY + (i * 15), 200);
-		}
-	}
 
-	/**
-	 * Draws a tooltip for the hovering data values.
-	 * 
-	 * @deprecated Use drawStockInfoTop instead.
-	 * @param gc2
-	 *            GraphicsContext to draw on.
-	 * @param x
-	 *            X-coord to draw tooltip on.
-	 * @param y
-	 *            Y-coord to draw tooltip on.
-	 * @param s
-	 *            The stock to draw info about.
-	 */
-	private void drawTooltip(GraphicsContext gc2, double x, double y, int pos, OHLC s) {
-		for (AbstractIntrument i : instruments) {
-			System.out.println(i.getClass() + " value" + i.getValueAtPos(pos));
-		}
-		double xc = x;
-		double yc = y;
-		gc2.setFill(labelColor);
-		gc2.fillRect(xc, yc, tooltipWidth + 2, toolTipHeight + 7);
-		gc2.setFill(graphBackgroundColor);
-		gc2.fillRect(xc + 1, yc + 1, tooltipWidth, toolTipHeight + 5);
-		gc2.setFill(labelColor);
-		gc2.fillText(s.getDate(), xc + 5, yc + 20, 90);
 		gc2.setFont(new Font(10));
-		gc2.fillText("Open:" + Util.round2Decimal(s.getOpen()), xc + 5, yc + 40, 90);
-		gc2.fillText("Close:" + Util.round2Decimal(s.getClose()), xc + 5, yc + 60, 90);
-		gc2.fillText("High:" + Util.round2Decimal(s.getHigh()), xc + 5, yc + 80, 90);
-		gc2.fillText("Low:" + Util.round2Decimal(s.getLow()), xc + 5, yc + 100, 90);
-		gc2.fillText("Volume:" + Util.bigNumber(s.getVolume()), xc + 5, yc + 120, 90);
+		gc2.setFill(labelColor);
+		gc2.fillText(date, x + 5, y, labelWidth);
+		gc2.fillText("Open:" + Util.round2Decimal(open), x + 5 + labelWidth, y, labelWidth);
+		gc2.fillText("Close:" + Util.round2Decimal(close), x + 5 + labelWidth * 2, y, labelWidth);
+		gc2.fillText("High:" + Util.round2Decimal(high), x + 5 + labelWidth * 3, y, labelWidth);
+		gc2.fillText("Low:" + Util.round2Decimal(low), x + 5 + labelWidth * 4, y, labelWidth);
+		gc2.fillText("Volume:" + Util.bigNumber(vol), 5, 35, 200);
+		int index = 0;
+		for (AbstractIndicator i : instrument) {
+			double val = 0;
+			if (s != null) {
+				val = i.getValueAtPos(xPos);
+			}
+
+			String str = i.getLabel() + " " + Util.round1Decimal(val);
+			double ypos = 50 + (index * 15);
+			gc2.fillText(str, 5, ypos, 100);
+			index++;
+		}
 	}
 
 	/**
@@ -507,7 +520,7 @@ public class StockChart extends Pane {
 	 * Method that redraws the whole graph. Called from constructor and when
 	 * resize() is called.
 	 */
-	private void redraw() {
+	public void redraw() {
 
 		totalWidth = this.getWidth();
 		totalHeight = this.getHeight();
@@ -519,175 +532,187 @@ public class StockChart extends Pane {
 		GraphicsContext gc2 = overlayCanvas.getGraphicsContext2D();
 		setInstrumentWidth();
 		// do we have data to show?
-		if (stockdata.size() > 0) {
+		if (stockdata != null && stockdata.size() > 0) {
+			showIndicatorButtons(true);
+			drawStockInfoTop(gc2, null, -1);
+			for (AbstractIndicator gi : instrument) {
+				if (gi instanceof AbstractInstrument) {
+					AbstractInstrument i = ((AbstractInstrument) gi);
+					i.setData(stockdata);
+
+				} else if (gi instanceof AbstractOnGraphInstrument) {
+					AbstractOnGraphInstrument i = ((AbstractOnGraphInstrument) gi);
+					i.calculate(stockdata);
+				}
+			}
+			// set pos for remove buttons
 			// recalculate height for each instrument
-			if (stockdata.size() != 0) {
-				int startIndex = zoom.getLatestZoomLevelStart();
-				int endIndex = zoom.getLatestZoomLevelEnd();
-				int sDiff = 0;
-				int eDiff = 0;
-				if (startIndex < 0) {
-					sDiff = 0 - startIndex;
-					startIndex = 0;
-				}
-				if (endIndex > stockdata.size() - 1) {
-					eDiff = endIndex - stockdata.size() - 1;
-					endIndex = stockdata.size() - 1;
-				}
-				startIndex += eDiff;
-				endIndex += sDiff;
+			int startIndex = zoom.getLatestZoomLevelStart();
+			int endIndex = zoom.getLatestZoomLevelEnd();
+			int sDiff = 0;
+			int eDiff = 0;
+			if (startIndex < 0) {
+				sDiff = 0 - startIndex;
+				startIndex = 0;
+			}
+			if (endIndex > stockdata.size() - 1) {
+				eDiff = endIndex - stockdata.size() - 1;
+				endIndex = stockdata.size() - 1;
+			}
+			startIndex += eDiff;
+			endIndex += sDiff;
 
-				ArrayList<OHLC> zoomData = new ArrayList<>(stockdata.subList(startIndex, endIndex));
-				boolean candleStickChart = zoomData.size() < CandleSticksWhenLesserThan;
-				boolean hasVolume = !(zoomData.get(0).getVolume() == -1);
-				double adjust = 0;
-				stockWidth = totalWidth;
-				if (hasVolume) {
-					stockHeight = totalHeight - dateHeight -AbstractIntrument.instrumentGraphHeight - (instruments.size()*AbstractIntrument.instrumentGraphHeight);
-					adjust = AbstractIntrument.instrumentGraphHeight;
-				}else{
-					stockHeight = totalHeight - dateHeight - (instruments.size()*AbstractIntrument.instrumentGraphHeight);
-				}
-				
-				Dataset minAndMax = getMinAndMax(zoomData);
-				maxValue = minAndMax.getMax();
-				minValue = minAndMax.getMin();
-				double xScale = stockWidth / (zoomData.size());
-				double yScale = stockHeight / (maxValue - minValue);
-				gc.setFill(graphBackgroundColor);
-				gc.fillRect(0, 0, stockWidth, stockHeight + dateHeight);
-				gc.setLineWidth(0.5);
-				
-				if (hasVolume) {
-					// draw volume
-					volume.draw(gc, zoomData, stockHeight+dateHeight);
-				}
-				for (int i = 0; i < instruments.size(); i++) {
-					double startY = stockHeight + dateHeight +adjust + (i * AbstractIntrument.instrumentGraphHeight);
-					AbstractIntrument instr = instruments.get(i);
-					instr.setData(stockdata);
-					instr.draw(gc, startY, startIndex, endIndex);
-				}
-				drawYAxis(gc, zoomData, yScale);
-				drawXAxis(gc, zoomData);
-				if (candleStickChart) {
-					drawCandlestickChart(gc, zoomData, yScale);
-				} else {
-					drawLineChart(gc, zoomData, xScale, yScale);
-				}
-				for (AbstractTracker gi : graphInstruments) {
-					gi.drawGraphInstrument(gc, startIndex, endIndex, stockWidth, stockHeight, minValue, maxValue);
+			ArrayList<OHLC> zoomData = new ArrayList<>(stockdata.subList(startIndex, endIndex));
+			boolean candleStickChart = zoomData.size() < CandleSticksWhenLesserThan;
+			boolean hasVolume = !(zoomData.get(0).getVolume() == -1);
+			double adjust = 0;
+			stockWidth = totalWidth;
+			stockHeight = totalHeight - dateHeight - (getInstrumentCount() * instrumentGraphHeight);
+			if (hasVolume) {
+				stockHeight -= instrumentGraphHeight;
+				adjust = instrumentGraphHeight;
+			}
+			Dataset minAndMax = getMinAndMax(zoomData);
+			maxValue = minAndMax.getMax();
+			minValue = minAndMax.getMin();
+			double xScale = stockWidth / (zoomData.size());
+			double yScale = stockHeight / (maxValue - minValue);
+			gc.setFill(graphBackgroundColor);
+			gc.fillRect(0, 0, stockWidth, stockHeight + dateHeight);
+			gc.setLineWidth(0.5);
 
+			if (hasVolume) {
+				// draw volume
+				volume.draw(gc, zoomData, stockHeight + dateHeight);
+			}
+			drawYAxis(gc, zoomData, yScale);
+			drawXAxis(gc, zoomData);
+			if (candleStickChart) {
+				drawCandlestickChart(gc, zoomData, yScale);
+			} else {
+				drawLineChart(gc, zoomData, xScale, yScale);
+			}
+			int nr = 0;
+			for (AbstractIndicator gi : instrument) {
+				if (gi instanceof AbstractInstrument) {
+					double startY = stockHeight + dateHeight + adjust + (nr * StockChart.instrumentGraphHeight);
+					AbstractInstrument i = ((AbstractInstrument) gi);
+					i.draw(gc, startY, startIndex, endIndex);
+					nr++;
+				} else if (gi instanceof AbstractOnGraphInstrument) {
+					AbstractOnGraphInstrument i = ((AbstractOnGraphInstrument) gi);
+					i.drawGraphInstrument(gc, startIndex, endIndex, stockWidth, stockHeight, minValue, maxValue);
 				}
-				gc.setLineWidth(1);
-				gc.setStroke(labelColor);
-				gc.strokeRect(0, 0, totalWidth, totalHeight);
-				// add zoom possibilities
-				overlayCanvas.setOnMousePressed(new EventHandler<MouseEvent>() {
+			}
+			gc.setLineWidth(1);
+			gc.setStroke(labelColor);
+			gc.strokeRect(0, 0, totalWidth, totalHeight);
+			// add zoom possibilities
+			overlayCanvas.setOnMousePressed(new EventHandler<MouseEvent>() {
 
-					@Override
-					public void handle(MouseEvent event) {
-						if (!pressed) {
-							prevPressedX = event.getX();
-							pressed = true;
-						}
+				@Override
+				public void handle(MouseEvent event) {
+					if (!pressed) {
+						prevPressedX = event.getX();
+						pressed = true;
 					}
-				});
-				overlayCanvas.setOnMouseReleased(new EventHandler<MouseEvent>() {
+				}
+			});
+			overlayCanvas.setOnMouseReleased(new EventHandler<MouseEvent>() {
 
-					@Override
-					public void handle(MouseEvent event) {
-						if (pressed) {
-							double x = event.getX();
+				@Override
+				public void handle(MouseEvent event) {
+					if (pressed) {
+						double x = event.getX();
+						int start = zoom.getLatestZoomLevelStart();
+						int end = zoom.getLatestZoomLevelEnd();
+						int diff = (end - start) / 10;
+						if (prevPressedX > x) {
+							zoom.pan(diff);
+						} else {
+							zoom.pan(-diff);
+						}
+						redraw();
+						pressed = false;
+					}
+				}
+			});
+
+			overlayCanvas.setOnScroll(new EventHandler<ScrollEvent>() {
+
+				@Override
+				public void handle(ScrollEvent event) {
+					double scroll = event.getDeltaY();
+					scrollValue += event.getDeltaY();
+					if (Math.abs(scrollValue) > 50) {
+						scrollValue = 0;
+						if (scroll < 0) {
+							// zoom out
+							zoom.zoomOut();
+							redraw();
+						} else {
+							// zoom in
 							int start = zoom.getLatestZoomLevelStart();
 							int end = zoom.getLatestZoomLevelEnd();
-							int diff = (end - start) / 10;
-							if (prevPressedX > x) {
-								zoom.pan(diff);
-							} else {
-								zoom.pan(-diff);
+							int diff = (end - start);
+							double xn = event.getX();
+							int xPosition = (int) (xn * (zoomData.size() / totalWidth));
+							start = xPosition - (diff / 5);
+							end = xPosition + (diff / 5);
+							if (start < 0) {
+								start = 0;
 							}
+							if (end > zoomData.size() - 1) {
+								end = zoomData.size() - 1;
+							}
+							zoom.zoomIn(start, end);
 							redraw();
-							pressed = false;
+
 						}
+
 					}
-				});
 
-				overlayCanvas.setOnScroll(new EventHandler<ScrollEvent>() {
+				}
+			});
 
-					@Override
-					public void handle(ScrollEvent event) {
-						double scroll = event.getDeltaY();
-						scrollValue += event.getDeltaY();
-						if (Math.abs(scrollValue) > 50) {
-							scrollValue = 0;
-							if (scroll < 0) {
-								// zoom out
-								zoom.zoomOut();
-								redraw();
+			overlayCanvas.setOnMouseMoved(new EventHandler<MouseEvent>() {
+
+				@Override
+				public void handle(MouseEvent event) {
+					double x = event.getX();
+					double y = event.getY();
+					if (x > 0 && x < stockWidth) {
+						gc2.clearRect(0, 0, totalWidth, totalHeight);
+						gc2.strokeLine(x, 0, x, totalHeight);
+
+						double totWidth = stockWidth;
+						int pos = (int) (x * (zoomData.size() / totWidth));
+						OHLC s = zoomData.get(pos);
+						if (s != null) {
+							double yScale = stockHeight / (maxValue - minValue);
+							double barWidth = (stockWidth) / (zoomData.size());
+							if (candleStickChart) {
+								makeCandlestickFocused(gc2, pos, s, yScale, barWidth);
 							} else {
-								// zoom in
-								int start = zoom.getLatestZoomLevelStart();
-								int end = zoom.getLatestZoomLevelEnd();
-								int diff = (end - start);
-								double xn = event.getX();
-								int xPosition = (int) (xn * (zoomData.size() / totalWidth));
-								start = xPosition - (diff / 5);
-								end = xPosition + (diff / 5);
-								if (start < 0) {
-									start = 0;
-								}
-								if (end > zoomData.size() - 1) {
-									end = zoomData.size() - 1;
-								}
-								zoom.zoomIn(start, end);
-								redraw();
+								makeLineFocused(gc2, pos, s, yScale, barWidth);
 
 							}
-
-						}
-
-					}
-				});
-
-				overlayCanvas.setOnMouseMoved(new EventHandler<MouseEvent>() {
-
-					@Override
-					public void handle(MouseEvent event) {
-						double x = event.getX();
-						double y = event.getY();
-						if (x > 0 && x < stockWidth) {
-							gc2.clearRect(0, 0, totalWidth, totalHeight);
-							gc2.strokeLine(x, 0, x, totalHeight);
-
-							double totWidth = stockWidth;
-							int pos = (int) (x * (zoomData.size() / totWidth));
-							OHLC s = zoomData.get(pos);
-							if (s != null) {
-								double yScale = stockHeight / (maxValue - minValue);
-								double barWidth = (stockWidth) / (zoomData.size());
-								if (candleStickChart) {
-									makeCandlestickFocused(gc2, pos, s, yScale, barWidth);
-								} else {
-									makeLineFocused(gc2, pos, s, yScale, barWidth);
-
-								}
-								if (x > stockWidth - tooltipWidth) {
-									x = x - tooltipWidth;
-								}
-								if (y > stockHeight - toolTipHeight) {
-									y = y - toolTipHeight;
-								}
-
-								drawStockInfoTop(gc2, s, pos);
-
+							if (x > stockWidth - tooltipWidth) {
+								x = x - tooltipWidth;
 							}
-						}
+							if (y > stockHeight - toolTipHeight) {
+								y = y - toolTipHeight;
+							}
 
+							drawStockInfoTop(gc2, s, pos);
+
+						}
 					}
 
-				});
-			}
+				}
+
+			});
+
 			gc.setFill(labelColor);
 			gc.setFont(Font.getDefault());
 			gc.fillText(stockName, 5, 20, 200);
@@ -702,6 +727,13 @@ public class StockChart extends Pane {
 			gc.setFill(labelColor);
 			gc.fillText(stockName, 5, 20, 200);
 			gc.fillText("No data to show.", 5, 50, 200);
+			showIndicatorButtons(false);
+		}
+	}
+
+	private void showIndicatorButtons(boolean show) {
+		for(RemoveIndicatorButton r : removeButtons){
+			r.setVisible(show);
 		}
 	}
 
@@ -713,7 +745,7 @@ public class StockChart extends Pane {
 	}
 
 	private void setInstrumentWidth() {
-		for (AbstractIntrument i : instruments) {
+		for (AbstractIndicator i : instrument) {
 			i.setWidth(totalWidth);
 		}
 	}
@@ -729,15 +761,6 @@ public class StockChart extends Pane {
 		this.stockName = s.getName();
 		this.zoom.clear();
 		this.zoom.zoomIn(0, stockdata.size() - 1);
-		//set data for all instruments
-		for (AbstractTracker gi : graphInstruments) {
-			gi.calculate(stockdata);
-		}
-		//
-		for (AbstractIntrument i : instruments) {
-			i.setData(stockdata);
-		}
-		//
 		redraw();
 	}
 
@@ -747,6 +770,16 @@ public class StockChart extends Pane {
 	public void zoomOut() {
 		zoom.zoomOut();
 		redraw();
+	}
+
+	public int getInstrumentCount() {
+		int nr = 0;
+		for (AbstractIndicator i : instrument) {
+			if (i instanceof AbstractInstrument) {
+				nr++;
+			}
+		}
+		return nr;
 	}
 
 }

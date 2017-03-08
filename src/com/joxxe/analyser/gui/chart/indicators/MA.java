@@ -1,4 +1,4 @@
-package com.joxxe.analyser.gui.chart.indicators.trackers;
+package com.joxxe.analyser.gui.chart.indicators;
 
 import java.util.ArrayList;
 
@@ -6,9 +6,9 @@ import com.joxxe.analyser.model.stock.OHLC;
 
 import javafx.scene.paint.Color;
 
-public class MovingAverage extends AbstractTracker {
+public class MA extends AbstractOnGraphInstrument {
 
-	public MovingAverage(int timeFrame,Color color) {
+	public MA(int timeFrame,Color color) {
 		super(timeFrame,color);
 	}
 

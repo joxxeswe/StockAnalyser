@@ -38,15 +38,7 @@ public class StockHandler {
 		this.stocks = FXCollections.observableList(new ArrayList<Stock>());
 		this.load();
 		//
-		for(Stock s : stocks){
-		//	s.sortValues(false);
-			ArrayList<OHLC> days = s.getQuoteDays();
-			System.out.println("Symbol: " + s.getName() + " last 10 days");
-			if(days.size()>20)
-			for(int i = days.size()-20;i<days.size();i++){
-				System.out.println("--->" + days.get(i).getDate());
-			}
-		}
+		MainWindow.output("Init complete");
 
 	}
 
@@ -110,7 +102,8 @@ public class StockHandler {
 			this.stocks = FXCollections.observableList(loaded);
 			input.close();
 			file.close();
-			// addStock(new Stock("OMXS30", "SSE", "OMXS30", null));
+			//addStock(new Stock("OMXS30", "SSE", "OMXS30", null));
+			MainWindow.output("Data loaded");
 		} catch (FileNotFoundException e) {
 			MainWindow.output("No data to load.");
 		} catch (IOException e) {

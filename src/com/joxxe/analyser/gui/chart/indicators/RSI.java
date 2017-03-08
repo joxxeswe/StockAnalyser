@@ -5,13 +5,12 @@ import com.joxxe.analyser.gui.chart.StockChart;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
-public class RSI extends AbstractIntrument {
+public class RSI extends AbstractInstrument {
 
-	private int time;
 	private double[] rsi;
 
-	public RSI(int time) {
-		this.time = time;
+	public RSI(int timeFrame,Color color) {
+		super(timeFrame, color);
 	}
 
 	private double[] calculateRSI() {
@@ -27,19 +26,19 @@ public class RSI extends AbstractIntrument {
 		double avLoss;
 		double rs;
 		this.rsi = new double[data.size()];
-		for (int i = time; i < gain.length; i++) {
-			if (i==time) { //first loop
+		for (int i = timeFrame; i < gain.length; i++) {
+			if (i==timeFrame) { //first loop
 				double aG = 0;
 				double aL = 0;
-				for (int j = 1; j < time+1; j++) { 
+				for (int j = 1; j < timeFrame+1; j++) { 
 					aG += gain[j];
 					aL += loss[j];
 				}
-				avGain = aG / time;
-				avLoss = aL / time;
+				avGain = aG / timeFrame;
+				avLoss = aL / timeFrame;
 			} else {
-				avGain = ((gain[i-1] * (time-1)) + gain[i]) / time;
-				avLoss = ((loss[i-1] * (time-1)) + loss[i]) / time;
+				avGain = ((gain[i-1] * (timeFrame-1)) + gain[i]) / timeFrame;
+				avLoss = ((loss[i-1] * (timeFrame-1)) + loss[i]) / timeFrame;
 				
 			}
 			gain[i] = avGain;
@@ -95,7 +94,7 @@ public class RSI extends AbstractIntrument {
 
 	@Override
 	public String getLabel() {
-		return "rsi " + time + ":";
+		return "rsi " + timeFrame + ":";
 	}
 
 }

@@ -1,30 +1,33 @@
 .left-menu {
-	-fx-background-color:rgba(0,0,0,0.8);
+	-fx-background-color:rgba(255,255,255,0.8);
 	-fx-border-radius: 0 10 10 0;
     -fx-background-radius: 0 10 10 0;
+    -fx-border:1;
+    -fx-border-color:black;
 }
-.list-view {
-	-fx-font-size:10;
-	-fx-background-color:rgba(0,0,0,0.01);
+.left-menu .list-view {
+	-fx-background-color:rgba(255,255,255,0.01);
 	-fx-border:0;
 }
-.list-cell { /* <=== changed to even */
-    -fx-background-color:rgba(0,0,0,0.05);
-    -fx-text-fill:white;
+.left-menu .list-cell { /* <=== changed to even */
+    -fx-background-color:rgba(255,255,255,0.05);
 }
-.list-cell:selected, .list-cell:filled:selected {
+.left-menu .list-cell:selected, .left-menu>.list-cell:filled:selected {
     -fx-background-color: black;
-    -fx-text-fill: white;
 }
-.list-view,.list-view:focused,.button:focused {
+.left-menu .list-view,.list-view:focused,.button:focused {
     -fx-focus-color: transparent; 
     -fx-background-insets: -1.4, 0, 1, 2;
 }
-.button {
-	-fx-background-color:rgba(0,0,0,0.5);
+.left-menu  .button {
+	-fx-background-color:rgba(255,255,255,0.5);
 	-fx-border-radius: 0 10 10 0;
     -fx-background-radius: 0 10 10 0;
-    -fx-text-fill:white;
+}
+.close-button {
+	 -fx-background-image:url("../images/close_button.png");
+	 -fx-background-size: 15 15;
+    -fx-background-repeat: no-repeat;
 }
 
 .output {

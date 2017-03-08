@@ -10,7 +10,7 @@ import javafx.scene.canvas.GraphicsContext;
 public class Volume {
 
 	private double width;
-	private double height = AbstractIntrument.instrumentGraphHeight;
+	private double height = StockChart.instrumentGraphHeight;
 	public double getWidth() {
 		return width;
 	}

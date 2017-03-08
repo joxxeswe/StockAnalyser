@@ -12,9 +12,6 @@ import com.joxxe.analyser.model.stock.StockHandler;
 import com.joxxe.analyser.threadExecuter.NotifyingThread;
 import com.joxxe.analyser.threadExecuter.ThreadExecuter;
 
-import javafx.animation.FadeTransition;
-import javafx.animation.PathTransition;
-import javafx.animation.Timeline;
 import javafx.animation.TranslateTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -33,8 +30,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.MoveTo;
-import javafx.scene.shape.Path;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import javafx.util.Duration;
@@ -75,7 +70,6 @@ public class MainWindow extends Application {
 		scene.getStylesheets().add(getClass().getResource("/styles/Analyser.css").toExternalForm());
 		// gui
 
-		VBox mainBox = new VBox();
 		TextField searchField = new TextField();
 		searchField.setPrefHeight(TOP_HEIGHT);
 		output = new TextArea();
@@ -184,7 +178,7 @@ public class MainWindow extends Application {
 			y = 0;
 		}
 		menuLeft.setLayoutY(y);
-		menuLeft.setTranslateX(-200);
+		menuLeft.setTranslateX(-210);
 		mainPane.requestFocus();
 
 	}
@@ -192,7 +186,7 @@ public class MainWindow extends Application {
 	private Pane createLeftMenu(double width,ListView<Stock> list) {
 		Pane p = new Pane();
 		p.getStyleClass().add("left-menu");
-		Button btn = new Button(">");
+		Button btn = new Button(" ");
 		HBox hbox = new HBox();
 		hbox.setAlignment(Pos.CENTER_LEFT);
 		VBox menuLeft = new VBox();
@@ -204,24 +198,29 @@ public class MainWindow extends Application {
 		menuLeft.getChildren().add(list);
 		TranslateTransition openNav=new TranslateTransition(new Duration(350), p);
         TranslateTransition closeNav=new TranslateTransition(new Duration(350), p);
-		btn.setOnAction(Event -> {
-			System.out.println("X:" + p.getTranslateX());
-			if(p.getTranslateX()<0){
-				btn.setText("<");
-				openNav.setToX(0);
-                openNav.play();
-            }else{
-            	btn.setText(">");
-                closeNav.setToX(-width);
-                closeNav.play();
-            }
-			
-
+		p.setOnMouseEntered(Event -> {
+			toggleMenu(width, p, btn, openNav, closeNav);
+		});
+		p.setOnMouseExited(Event ->{
+			toggleMenu(width, p, btn, openNav, closeNav);
 		});
 		hbox.getChildren().addAll(menuLeft,btn);
 		p.getChildren().add(hbox);
 		
 		return p;
+	}
+
+	private void toggleMenu(double width, Pane p, Button btn, TranslateTransition openNav,
+			TranslateTransition closeNav) {
+		if(p.getTranslateX()<0){
+			btn.setText(" ");
+			openNav.setToX(0);
+		    openNav.play();
+		}else{
+			btn.setText(" ");
+		    closeNav.setToX(-(width+10));
+		    closeNav.play();
+		}
 	}
 
 	/**
@@ -307,5 +306,9 @@ public class MainWindow extends Application {
 		Platform.exit();
 		System.exit(1);
 
+	}
+
+	public void addIndicator(UserChoice userChoice) {
+		stockPane.addIndicator(userChoice);
 	}
 }

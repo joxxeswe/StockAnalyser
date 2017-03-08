@@ -17,4 +17,9 @@ public class Util {
 	public static double round1Decimal(double val) {
 		return (double) Math.round(val * 10) / 10;
 	}
+
+	public static int toInt(String text) {
+		int i = Integer.parseInt(text);
+		return i;
+	}
 }

@@ -1,9 +1,8 @@
-package com.joxxe.analyser.gui.chart.indicators.trackers;
+package com.joxxe.analyser.gui.chart.indicators;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import com.joxxe.analyser.gui.chart.StockChart;
 import com.joxxe.analyser.model.stock.OHLC;
 
 import javafx.scene.canvas.GraphicsContext;
@@ -13,33 +12,14 @@ import javafx.scene.paint.Color;
  * @author joakim
  *
  */
-public abstract class AbstractTracker {
+public abstract class AbstractOnGraphInstrument extends AbstractIndicator {
 
-	protected int timeFrame;
+	public AbstractOnGraphInstrument(int timeFrame, Color color) {
+		super(timeFrame, color);
+	}
+
 	protected double[] data;
 	protected double[] zoomData;
-	protected Color color;
-
-	public AbstractTracker(int timeFrame,Color color){
-		this.timeFrame = timeFrame;
-		this.color = color;
-	}
-	
-	public int getTimeFrame() {
-		return timeFrame;
-	}
-
-	public void setTimeFrame(int timeFrame) {
-		this.timeFrame = timeFrame;
-	}
-
-	public Color getColor() {
-		return color;
-	}
-
-	public void setColor(Color color) {
-		this.color = color;
-	}
 
 	public double[] getData() {
 		return this.data;
@@ -49,6 +29,7 @@ public abstract class AbstractTracker {
 		//draw it
 		gc.setStroke(this.color);
 		gc.setLineWidth(1);
+
 		double xScale = w / (zoomData.length);
 		double yScale = h / (max - min);
 		for (int i = 0; i < zoomData.length - 1; i++) {
@@ -70,8 +51,6 @@ public abstract class AbstractTracker {
 	 * @param stockData Data to calculate from.
 	 */
 	public abstract void calculate(ArrayList<OHLC> stockData);
-
-	public abstract String getLabel();
 
 	public double getValueAtPos(int xPos) {
 		return zoomData[xPos];
