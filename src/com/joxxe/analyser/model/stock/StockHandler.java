@@ -138,7 +138,7 @@ public class StockHandler {
 					MainWindow.output("Update " + s.getName() + " from date: " + sDt);
 					ArrayList<OHLC> result = NordnetCrawler.getStockData(s.getIdentifier(), s.getMarketId(), sDt);
 					for (OHLC v : result) {
-						s.addQouteDay(v);
+						s.addOHLC(v);
 					}
 					MainWindow.output("Finished updating " + s.getName());
 				} catch (ParseException e) {
@@ -151,7 +151,7 @@ public class StockHandler {
 				MainWindow.output("Update " + s.getName() + " from date: " + sDt);
 				ArrayList<OHLC> result = NordnetCrawler.getStockData(s.getIdentifier(), s.getMarketId(), sDt);
 				for (OHLC v : result) {
-					s.addQouteDay(v);
+					s.addOHLC(v);
 				}
 				MainWindow.output("Finished updating " + s.getName());
 			}

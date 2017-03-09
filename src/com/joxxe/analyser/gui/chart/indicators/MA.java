@@ -5,7 +5,12 @@ import java.util.ArrayList;
 import com.joxxe.analyser.model.stock.OHLC;
 
 import javafx.scene.paint.Color;
-
+/**
+ * Calculate MA for a instrument.
+ * http://stockcharts.com/school/doku.php?id=chart_school:technical_indicators:moving_averages
+ * @author joakim hagberg joakimhagberg87@gmail.com
+ *
+ */
 public class MA extends AbstractOnGraphInstrument {
 
 	public MA(int timeFrame,Color color) {

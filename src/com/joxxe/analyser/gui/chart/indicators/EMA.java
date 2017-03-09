@@ -5,25 +5,18 @@ import java.util.ArrayList;
 import com.joxxe.analyser.model.stock.OHLC;
 
 import javafx.scene.paint.Color;
-
+/**
+ * Calculate EMA for a instrument.
+ * http://stockcharts.com/school/doku.php?id=chart_school:technical_indicators:moving_averages
+ * @author joakim hagberg joakimhagberg87@gmail.com
+ *
+ */
 public class EMA extends AbstractOnGraphInstrument {
 
 	public EMA(int timeFrame, Color color) {
 		super(timeFrame, color);
 	}
 
-	/**
-	 * 
-	 * 
-	 * 
-	 * SMA: 10 period sum / 10
-	 * 
-	 * Multiplier: (2 / (Time periods + 1) ) = (2 / (10 + 1) ) = 0.1818 (18.18%)
-	 * Price [today] x K) + (EMA [yesterday] x (1 – K)) EMA: {Close -
-	 * EMA(previous day)} x multiplier + EMA(previous day).
-	 * 
-	 * =const*(close4-prevema)+prevema
-	 */
 	public void calculate(ArrayList<OHLC> stockData) {
 		this.data = new double[stockData.size()];
 		double sma = 0;

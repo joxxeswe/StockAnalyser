@@ -1,6 +1,6 @@
 package com.joxxe.analyser.model;
 /**
- * Utility class.
+ * Utility class. Random static methods.
  *  @author joakim hagberg joakimhagberg87@gmail.com
  *
  */

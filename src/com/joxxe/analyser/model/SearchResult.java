@@ -1,6 +1,6 @@
 package com.joxxe.analyser.model;
 /**
- * 
+ * A class that stores info about a search on nordnet.
 *  @author joakim hagberg joakimhagberg87@gmail.com
  *
  */

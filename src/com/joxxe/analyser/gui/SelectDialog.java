@@ -17,9 +17,18 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.util.Callback;
-
+/**
+ * A popup dialog that lets user make choices.
+ * @author joakim hagberg joakimhagberg87@gmail.com
+ *
+ */
 public class SelectDialog extends Dialog<UserChoice> {
 
+	/**
+	 * Private class that shows colors;
+	 *  @author joakim hagberg joakimhagberg87@gmail.com
+	 *
+	 */
 	private class ColorSet {
 		private Color color;
 		private String name;
@@ -40,6 +49,7 @@ public class SelectDialog extends Dialog<UserChoice> {
 
 	}
 
+
 	public SelectDialog(String currClass, String title, String text, String lbl1) {
 		setTitle(title);
 		setHeaderText(text);
@@ -47,8 +57,15 @@ public class SelectDialog extends Dialog<UserChoice> {
 
 		Label label1 = new Label(lbl1);
 		TextField text1 = new TextField();
+		ChangeListener<String> forceNumberListener = (observable, oldValue, newValue) -> {
+			if (!newValue.matches("\\d*"))
+				((StringProperty) observable).set(oldValue);
+		};
 
+		text1.textProperty().addListener(forceNumberListener);
 		GridPane grid = new GridPane();
+		grid.setHgap(10);
+		grid.setVgap(10);
 		grid.add(label1, 1, 1);
 		grid.add(text1, 2, 1);
 		getDialogPane().setContent(grid);
@@ -89,6 +106,8 @@ public class SelectDialog extends Dialog<UserChoice> {
 				new ColorSet("Brown", Color.BURLYWOOD), new ColorSet("Grey", Color.DIMGREY));
 		ComboBox<ColorSet> colors = new ComboBox<ColorSet>(options);
 		GridPane grid = new GridPane();
+		grid.setHgap(10);
+		grid.setVgap(10);
 		grid.add(label1, 1, 1);
 		grid.add(text1, 2, 1);
 		grid.add(label2, 1, 2);
@@ -113,6 +132,12 @@ public class SelectDialog extends Dialog<UserChoice> {
 		});
 	}
 
+	/**
+	 * Adds validation for input.
+	 * @param text1
+	 * @param colors
+	 * @return A button with validation.
+	 */
 	private ButtonType addOkCancelButton(TextField text1, ComboBox<ColorSet> colors) {
 		ButtonType buttonTypeOk = new ButtonType("Add", ButtonData.APPLY);
 		ButtonType buttonTypeCancel = new ButtonType("Cancel", ButtonData.CANCEL_CLOSE);

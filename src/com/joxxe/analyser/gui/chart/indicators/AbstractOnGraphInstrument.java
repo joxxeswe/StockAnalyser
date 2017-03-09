@@ -8,8 +8,9 @@ import com.joxxe.analyser.model.stock.OHLC;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 /**
- * 
- * @author joakim
+ * Abstratct class that you should extend if youre developing an instrument
+ * to show ON the stock chart..
+ * @author joakim hagberg joakimhagberg87@gmail.com
  *
  */
 public abstract class AbstractOnGraphInstrument extends AbstractIndicator {

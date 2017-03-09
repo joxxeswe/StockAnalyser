@@ -56,4 +56,5 @@ public class StockPane extends Pane {
 		
 		//chart.addIndicator(c);
 	}
+
 }

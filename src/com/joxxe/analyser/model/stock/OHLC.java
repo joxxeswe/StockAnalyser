@@ -74,6 +74,15 @@ public class OHLC implements Externalizable {
 		return f.format(date.get());
 	}
 
+	/**
+	 * Returns an integer yyyyMMdd.
+	 * @return
+	 */
+	public int getDateAsNumber(){
+		SimpleDateFormat f = new SimpleDateFormat("yyyyMMdd");
+		return Integer.parseInt(f.format(date.get()));
+	}
+	
 	public double getHigh() {
 		return high.get();
 	}

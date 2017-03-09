@@ -5,25 +5,19 @@ import java.util.ArrayList;
 import com.joxxe.analyser.gui.chart.indicators.AbstractIndicator;
 import com.joxxe.analyser.gui.chart.indicators.AbstractInstrument;
 import com.joxxe.analyser.gui.chart.indicators.AbstractOnGraphInstrument;
-import com.joxxe.analyser.gui.chart.indicators.EMA;
-import com.joxxe.analyser.gui.chart.indicators.MA;
-import com.joxxe.analyser.gui.chart.indicators.RSI;
 import com.joxxe.analyser.gui.chart.indicators.Volume;
 import com.joxxe.analyser.model.Util;
 import com.joxxe.analyser.model.stock.Stock;
 import com.joxxe.analyser.model.stock.OHLC;
 
-import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Button;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import javafx.util.Callback;
 
 /**
  * Draws a graph for a selected stock. Draws either a line graph or a
@@ -161,23 +155,21 @@ public class StockChart extends Pane {
 	}
 
 	// variables to change
-	public static Color graphColor = Color.CORNFLOWERBLUE;
-	public static Color graphBackgroundColor = Color.WHITE;
-	public static Color labelColor = Color.BLACK;
-	public static Color gridColor = Color.rgb(0, 0, 0, 0.5); // light grey;
-	public static Color todayColor = Color.rgb(255, 0, 0);
-	public static Color markedCandleStick = Color.rgb(0, 0, 0, 0.3);
-	public static Color candleMiddleBarColor = Color.rgb(0, 0, 0, 0.75);
-	public static Color candlePositiveColor = Color.rgb(100, 255, 100);
-	public static Color candleNegativeColor = Color.rgb(255, 100, 100);
-	public static Color volumeColor = Color.rgb(100, 100, 255, 0.8);
-	public static int CandleSticksWhenLesserThan = 500;
-	public static int numberYDivisions = 10;
-	public static double todaySize = 5;
-	public static double tooltipWidth = 100;
-	public static double toolTipHeight = 130;
-	public static boolean toolTipEnabled = false;
-	public static double instrumentGraphHeight = 80;
+	public static Color CHART_LINE_COLOR = Color.CORNFLOWERBLUE;
+	public static Color CHART_BACKGROUND_COLOR = Color.WHITE;
+	public static Color CHART_LABEL_COLOR = Color.BLACK;
+	public static Color CHART_GRID_COLOR = Color.rgb(0, 0, 0, 0.5); // light grey;
+	public static Color CHART_TODAY_CIRCLE_COLOR = Color.rgb(255, 0, 0);
+	public static Color CANDLESTICK_FOCUSED_COLOR = Color.rgb(0, 0, 0, 0.3);
+	public static Color CANDLESTICK_MIDDLE_BAR_COLOR = Color.rgb(0, 0, 0, 0.75);
+	public static Color CANDLESTICK_POSITIVE_COLOR = Color.rgb(100, 255, 100);
+	public static Color CANDLESTICK_NEGATIVE_COLOR = Color.rgb(255, 100, 100);
+	public static Color VOLUME_COLOR = Color.rgb(100, 100, 255, 0.8);
+	public static int USE_CANDLESTICK_WHEN_LESSER_THAN = 500;
+	public static int NUMBER_OF_Y_LINES = 10;
+	public static double CHART_TODAY_CIRCLE_SIZE = 5;
+	public static double HEIGHT_OF_INSTRUMENT = 80;
+	public static double HEIGHT_OF_DATE = 20;
 	// true = mousover, false = values on top.
 	//
 	private ArrayList<AbstractIndicator> instrument;
@@ -197,7 +189,6 @@ public class StockChart extends Pane {
 	private double scrollValue;
 	private Volume volume;
 	private ArrayList<RemoveIndicatorButton> removeButtons;
-	private static double dateHeight = 20;
 
 	/**
 	 * Constructor, creates the graph.
@@ -215,10 +206,10 @@ public class StockChart extends Pane {
 		pressed = false;
 		this.zoom = new Zoom();
 		scrollValue = 0;
-		addIndicator(new MA(50, Color.GREENYELLOW));
+	/*	addIndicator(new MA(50, Color.GREENYELLOW));
 		addIndicator(new MA(200, Color.INDIANRED));
 		addIndicator(new RSI(14, Color.INDIANRED));
-		addIndicator(new EMA(10, Color.CHOCOLATE));
+		addIndicator(new EMA(10, Color.CHOCOLATE));*/
 	}
 
 	public void addIndicator(AbstractIndicator i) {
@@ -267,19 +258,19 @@ public class StockChart extends Pane {
 				barHeight = (values.get(i).getClose() - values.get(i).getOpen()) * yScale;
 				y = ((maxValue - values.get(i).getClose()) * yScale);
 				x = (i * barWidth);
-				color = candlePositiveColor;
+				color = CANDLESTICK_POSITIVE_COLOR;
 			} else {
 				// descending
 				barHeight = (values.get(i).getOpen() - values.get(i).getClose()) * yScale;
 				y = ((maxValue - values.get(i).getOpen()) * yScale);
 				x = (i * barWidth);
-				color = candleNegativeColor;
+				color = CANDLESTICK_NEGATIVE_COLOR;
 			}
 			// candle middle bar
 			double yLow = ((maxValue - values.get(i).getLow()) * yScale);
 			double yHigh = ((maxValue - values.get(i).getHigh()) * yScale);
 			gc.setLineWidth(1);
-			gc.setStroke(candleMiddleBarColor);
+			gc.setStroke(CANDLESTICK_MIDDLE_BAR_COLOR);
 			gc.strokeLine(x + (barWidth / 2), yLow, x + (barWidth / 2), yHigh);
 			// candle
 			gc.setFill(color);
@@ -300,7 +291,7 @@ public class StockChart extends Pane {
 	 *            The y-axis scale.
 	 */
 	private void drawLineChart(GraphicsContext gc, ArrayList<OHLC> values, double xScale, double yScale) {
-		gc.setStroke(graphColor);
+		gc.setStroke(CHART_LINE_COLOR);
 		gc.setLineWidth(1);
 		for (int i = 0; i < values.size() - 1; i++) {
 			double x1 = (i * xScale);
@@ -341,7 +332,7 @@ public class StockChart extends Pane {
 		}
 
 		gc2.setFont(new Font(10));
-		gc2.setFill(labelColor);
+		gc2.setFill(CHART_LABEL_COLOR);
 		gc2.fillText(date, x + 5, y, labelWidth);
 		gc2.fillText("Open:" + Util.round2Decimal(open), x + 5 + labelWidth, y, labelWidth);
 		gc2.fillText("Close:" + Util.round2Decimal(close), x + 5 + labelWidth * 2, y, labelWidth);
@@ -379,11 +370,11 @@ public class StockChart extends Pane {
 				double y0 = stockHeight;
 				// double y1 = y0 - pointWidth;
 				if ((i % ((int) ((values.size() / 10.0)) + 1)) == 0) {
-					gc.setStroke(gridColor);
+					gc.setStroke(CHART_GRID_COLOR);
 					gc.strokeLine(x0, 0, x1, y0);
-					gc.setFill(labelColor);
+					gc.setFill(CHART_LABEL_COLOR);
 					SimpleDateFormat f;
-					if (values.size() <= CandleSticksWhenLesserThan) {
+					if (values.size() <= USE_CANDLESTICK_WHEN_LESSER_THAN) {
 						// month
 						f = new SimpleDateFormat("MMM dd");
 					} else {
@@ -411,7 +402,7 @@ public class StockChart extends Pane {
 	 */
 	private void drawYAxis(GraphicsContext gc, ArrayList<OHLC> values, double yScale) {
 		double diff = maxValue - minValue;
-		double temp = diff / numberYDivisions;
+		double temp = diff / NUMBER_OF_Y_LINES;
 		double mag = Math.floor(Math.log10(temp));
 		double magPow = Math.pow(10, mag);
 		int magMsd = (int) (temp / magPow + 0.5);
@@ -427,9 +418,9 @@ public class StockChart extends Pane {
 			double y0 = ((maxValue - val) * yScale);
 			double y1 = y0;
 			if (y0 <= stockHeight) {
-				gc.setStroke(gridColor);
+				gc.setStroke(CHART_GRID_COLOR);
 				gc.strokeLine(0, y0, stockWidth, y1);
-				gc.setFill(labelColor);
+				gc.setFill(CHART_LABEL_COLOR);
 				String yLabel = Util.round1Decimal(val) + "";
 				int labelWidth = 50;
 				gc.setFont(new Font(10));
@@ -490,7 +481,7 @@ public class StockChart extends Pane {
 			barHeight = (s.getOpen() - s.getClose()) * yScale;
 			yval = ((maxValue - s.getOpen()) * yScale);
 		}
-		gc2.setFill(markedCandleStick);
+		gc2.setFill(CANDLESTICK_FOCUSED_COLOR);
 		gc2.fillRect(xval, yval, barWidth, barHeight);
 	}
 
@@ -512,8 +503,8 @@ public class StockChart extends Pane {
 		} else {
 			yval = ((maxValue - s.getOpen()) * yScale);
 		}
-		gc2.setFill(todayColor);
-		gc2.fillOval(xval - (todaySize / 2), yval - (todaySize / 2), todaySize, todaySize);
+		gc2.setFill(CHART_TODAY_CIRCLE_COLOR);
+		gc2.fillOval(xval - (CHART_TODAY_CIRCLE_SIZE / 2), yval - (CHART_TODAY_CIRCLE_SIZE / 2), CHART_TODAY_CIRCLE_SIZE, CHART_TODAY_CIRCLE_SIZE);
 	}
 
 	/**
@@ -561,29 +552,29 @@ public class StockChart extends Pane {
 			}
 			startIndex += eDiff;
 			endIndex += sDiff;
-
-			ArrayList<OHLC> zoomData = new ArrayList<>(stockdata.subList(startIndex, endIndex));
-			boolean candleStickChart = zoomData.size() < CandleSticksWhenLesserThan;
+			
+			ArrayList<OHLC> zoomData = new ArrayList<>(stockdata.subList(startIndex, endIndex+1));
+			boolean candleStickChart = zoomData.size() < USE_CANDLESTICK_WHEN_LESSER_THAN;
 			boolean hasVolume = !(zoomData.get(0).getVolume() == -1);
 			double adjust = 0;
 			stockWidth = totalWidth;
-			stockHeight = totalHeight - dateHeight - (getInstrumentCount() * instrumentGraphHeight);
+			stockHeight = totalHeight - HEIGHT_OF_DATE - (getInstrumentCount() * HEIGHT_OF_INSTRUMENT);
 			if (hasVolume) {
-				stockHeight -= instrumentGraphHeight;
-				adjust = instrumentGraphHeight;
+				stockHeight -= HEIGHT_OF_INSTRUMENT;
+				adjust = HEIGHT_OF_INSTRUMENT;
 			}
 			Dataset minAndMax = getMinAndMax(zoomData);
 			maxValue = minAndMax.getMax();
 			minValue = minAndMax.getMin();
 			double xScale = stockWidth / (zoomData.size());
 			double yScale = stockHeight / (maxValue - minValue);
-			gc.setFill(graphBackgroundColor);
-			gc.fillRect(0, 0, stockWidth, stockHeight + dateHeight);
+			gc.setFill(CHART_BACKGROUND_COLOR);
+			gc.fillRect(0, 0, stockWidth, stockHeight + HEIGHT_OF_DATE);
 			gc.setLineWidth(0.5);
 
 			if (hasVolume) {
 				// draw volume
-				volume.draw(gc, zoomData, stockHeight + dateHeight);
+				volume.draw(gc, zoomData, stockHeight + HEIGHT_OF_DATE);
 			}
 			drawYAxis(gc, zoomData, yScale);
 			drawXAxis(gc, zoomData);
@@ -595,7 +586,7 @@ public class StockChart extends Pane {
 			int nr = 0;
 			for (AbstractIndicator gi : instrument) {
 				if (gi instanceof AbstractInstrument) {
-					double startY = stockHeight + dateHeight + adjust + (nr * StockChart.instrumentGraphHeight);
+					double startY = stockHeight + HEIGHT_OF_DATE + adjust + (nr * StockChart.HEIGHT_OF_INSTRUMENT);
 					AbstractInstrument i = ((AbstractInstrument) gi);
 					i.draw(gc, startY, startIndex, endIndex);
 					nr++;
@@ -605,9 +596,9 @@ public class StockChart extends Pane {
 				}
 			}
 			gc.setLineWidth(1);
-			gc.setStroke(labelColor);
+			gc.setStroke(CHART_LABEL_COLOR);
 			gc.strokeRect(0, 0, totalWidth, totalHeight);
-			// add zoom possibilities
+			// add pan possibilities
 			overlayCanvas.setOnMousePressed(new EventHandler<MouseEvent>() {
 
 				@Override
@@ -618,6 +609,7 @@ public class StockChart extends Pane {
 					}
 				}
 			});
+			//handling panning left/right.
 			overlayCanvas.setOnMouseReleased(new EventHandler<MouseEvent>() {
 
 				@Override
@@ -637,7 +629,7 @@ public class StockChart extends Pane {
 					}
 				}
 			});
-
+			//allow the user to zoom in/out.
 			overlayCanvas.setOnScroll(new EventHandler<ScrollEvent>() {
 
 				@Override
@@ -662,8 +654,8 @@ public class StockChart extends Pane {
 							if (start < 0) {
 								start = 0;
 							}
-							if (end > zoomData.size() - 1) {
-								end = zoomData.size() - 1;
+							if (end > stockdata.size() - 1) {
+								end = stockdata.size() - 1;
 							}
 							zoom.zoomIn(start, end);
 							redraw();
@@ -675,12 +667,12 @@ public class StockChart extends Pane {
 				}
 			});
 
+			//show hovering info about OHLC and indicators.
 			overlayCanvas.setOnMouseMoved(new EventHandler<MouseEvent>() {
 
 				@Override
 				public void handle(MouseEvent event) {
 					double x = event.getX();
-					double y = event.getY();
 					if (x > 0 && x < stockWidth) {
 						gc2.clearRect(0, 0, totalWidth, totalHeight);
 						gc2.strokeLine(x, 0, x, totalHeight);
@@ -697,13 +689,6 @@ public class StockChart extends Pane {
 								makeLineFocused(gc2, pos, s, yScale, barWidth);
 
 							}
-							if (x > stockWidth - tooltipWidth) {
-								x = x - tooltipWidth;
-							}
-							if (y > stockHeight - toolTipHeight) {
-								y = y - toolTipHeight;
-							}
-
 							drawStockInfoTop(gc2, s, pos);
 
 						}
@@ -713,7 +698,7 @@ public class StockChart extends Pane {
 
 			});
 
-			gc.setFill(labelColor);
+			gc.setFill(CHART_LABEL_COLOR);
 			gc.setFont(Font.getDefault());
 			gc.fillText(stockName, 5, 20, 200);
 
@@ -722,15 +707,19 @@ public class StockChart extends Pane {
 			gc2.clearRect(0, 0, totalWidth, totalHeight);
 			overlayCanvas.setOnMousePressed(null);
 			overlayCanvas.setOnMouseMoved(null);
-			gc.setFill(graphBackgroundColor);
+			gc.setFill(CHART_BACKGROUND_COLOR);
 			gc.fillRect(0, 0, totalWidth, totalHeight);
-			gc.setFill(labelColor);
+			gc.setFill(CHART_LABEL_COLOR);
 			gc.fillText(stockName, 5, 20, 200);
 			gc.fillText("No data to show.", 5, 50, 200);
 			showIndicatorButtons(false);
 		}
 	}
 
+	/**
+	 * Hide/show the indicator buttons
+	 * @param show True if to be shown, otherwise false.
+	 */
 	private void showIndicatorButtons(boolean show) {
 		for(RemoveIndicatorButton r : removeButtons){
 			r.setVisible(show);
@@ -760,7 +749,7 @@ public class StockChart extends Pane {
 		this.stockdata = s.getQuoteDays();
 		this.stockName = s.getName();
 		this.zoom.clear();
-		this.zoom.zoomIn(0, stockdata.size() - 1);
+		this.zoom.zoomIn(0, stockdata.size()-1);
 		redraw();
 	}
 

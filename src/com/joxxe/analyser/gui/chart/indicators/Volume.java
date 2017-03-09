@@ -6,11 +6,15 @@ import com.joxxe.analyser.gui.chart.StockChart;
 import com.joxxe.analyser.model.stock.OHLC;
 
 import javafx.scene.canvas.GraphicsContext;
-
+/**
+ * Shows the volume for a instrument
+ * @author joakim hagberg joakimhagberg87@gmail.com
+ *
+ */
 public class Volume {
 
 	private double width;
-	private double height = StockChart.instrumentGraphHeight;
+	private double height = StockChart.HEIGHT_OF_INSTRUMENT;
 	public double getWidth() {
 		return width;
 	}
@@ -38,12 +42,12 @@ public class Volume {
 		}
 		gc.clearRect(0, startY, this.width, this.height);
 		if (!noVolume) {
-			gc.setStroke(StockChart.graphColor);
-			gc.setFill(StockChart.graphBackgroundColor);
+			gc.setStroke(StockChart.CHART_LINE_COLOR);
+			gc.setFill(StockChart.CHART_BACKGROUND_COLOR);
 			gc.fillRect(0, startY,  this.width,  this.height);
-			gc.setFill(StockChart.labelColor);
+			gc.setFill(StockChart.CHART_LABEL_COLOR);
 			gc.fillText("Volume", 10, startY, 100);
-			gc.setFill(StockChart.volumeColor);
+			gc.setFill(StockChart.VOLUME_COLOR);
 			double scale = ( this.height) / (maxVol - minVol);
 			for (int i = 0; i < data.size(); i++) {
 				double barWidth =  this.width / (data.size());

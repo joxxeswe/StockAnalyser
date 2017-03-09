@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
+
 import javafx.beans.property.SimpleStringProperty;
 
 /**
@@ -26,12 +28,12 @@ public class Stock implements Externalizable {
 	private SimpleStringProperty marketId;
 	private SimpleStringProperty identifier;
 	private Date latestAddedValue;
-	private HashMap<String,OHLC> values;
+	private Map<Integer,OHLC> data;
 
 
 	public Stock(String name,String marketId,String identifier,String url) {
 		this.latestAddedValue = null;
-		this.values = new HashMap<>();
+		this.data = new HashMap<>();
 		setName(new SimpleStringProperty(name));
 		setMarketId(new SimpleStringProperty(marketId));
 		setIdentifier(new SimpleStringProperty(identifier));
@@ -74,30 +76,33 @@ public class Stock implements Externalizable {
 		this.identifier = identifier;
 	}
 
-
-
-	public void addQouteDay(OHLC q) {
+	public void addOHLC(OHLC o) {
+		
 		// check so no day is added two times.
-		if(values.containsKey(q.getDate())){
-			//already contains, update it!
-			OHLC v = values.get(q.getDate());
-			v.setClose(q.getClose());
-			v.setHigh(q.getHigh());
-			v.setLow(q.getLow());
-			v.setOpen(q.getOpen());
-			v.setVolume(q.getVolume());
+		try{
+		int key = o.getDateAsNumber();
+		OHLC foundOHLC = data.get(key);
+		if(foundOHLC!=null){
+			foundOHLC.setClose(o.getClose());
+			foundOHLC.setHigh(o.getHigh());
+			foundOHLC.setLow(o.getLow());
+			foundOHLC.setOpen(o.getOpen());
+			foundOHLC.setVolume(o.getVolume());
 		}else{
-			//add it
-			values.put(q.getDate(), q);
+			data.put(o.getDateAsNumber(), o);
 		}
 		if(latestAddedValue == null ||
-				q.getDateAsDate().compareTo(latestAddedValue) >= 0){
-			latestAddedValue = q.getDateAsDate();
+				o.getDateAsDate().compareTo(latestAddedValue) >= 0){
+			latestAddedValue = o.getDateAsDate();
 		}
+		}catch(NumberFormatException e){
+			//do not add, invalid date...
+		}
+		
 	}
 	
 	public ArrayList<OHLC> getQuoteDays() {
-		ArrayList<OHLC> list = new ArrayList<OHLC>(values.values());
+		ArrayList<OHLC> list = new ArrayList<OHLC>(data.values());
 		list.sort(new Comparator<OHLC>() {
 
 			@Override
@@ -113,15 +118,21 @@ public class Stock implements Externalizable {
 		});
 		return list;
 	}
-	
+	/**
+	 * Returns a copy of the latest time the stock is updated.
+	 * @return a copy of the latest time the stock is updated or null if no update.
+	 */ 
 	public Date getLatestUpdate(){
-		return latestAddedValue;
+		if(latestAddedValue==null){
+			return null;
+		}
+		return new Date(latestAddedValue.getTime());
 		
 	}
 
 	@Override
 	public String toString() {
-		return "<-- " + name.getValue() + "-->\n" + values.toString() + "\n\n";
+		return "<-- " + name.getValue() + "-->\n" + data.toString() + "\n\n";
 	}
 
 	@Override
@@ -131,7 +142,7 @@ public class Stock implements Externalizable {
 		out.writeObject(getMarketId());
 		out.writeObject(getUrl());
 		out.writeObject(latestAddedValue);
-		out.writeObject(values);
+		out.writeObject(data);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -142,7 +153,7 @@ public class Stock implements Externalizable {
 		setMarketId(new SimpleStringProperty((String) in.readObject()));
 		setUrl(new SimpleStringProperty((String) in.readObject()));
 		latestAddedValue = (Date) in.readObject();
-		values = (HashMap<String,OHLC>) in.readObject();
+		data = (HashMap<Integer,OHLC>) in.readObject();
 	}
 
 	@Override

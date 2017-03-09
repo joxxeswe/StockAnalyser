@@ -1,15 +1,16 @@
 package com.joxxe.analyser.gui.chart;
 
-import java.awt.Button;
-
 import javafx.scene.layout.Pane;
-
+/**
+ * A "button" that is drawn on the stock chart so the user can remove indicators.
+ *  @author joakim hagberg joakimhagberg87@gmail.com
+ *
+ */
 public class RemoveIndicatorButton extends Pane {
 
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 6222926442866253673L;
 	private static final double size = 15;
 	private int index;
 	

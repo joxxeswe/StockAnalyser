@@ -4,7 +4,12 @@ import java.util.Arrays;
 import com.joxxe.analyser.gui.chart.StockChart;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
-
+/**
+ * Calculate RSI for a instrument.
+ * http://stockcharts.com/school/doku.php?st=rsi&id=chart_school:technical_indicators:relative_strength_index_rsi
+ * @author joakim hagberg joakimhagberg87@gmail.com
+ *
+ */
 public class RSI extends AbstractInstrument {
 
 	private double[] rsi;
@@ -56,16 +61,16 @@ public class RSI extends AbstractInstrument {
 		double[] temp = calculateRSI();
 		rsi = Arrays.copyOfRange(temp, startIndex, endIndex+1);
 		gc.clearRect(0, startY, width, height);
-		gc.setFill(StockChart.graphBackgroundColor);
+		gc.setFill(StockChart.CHART_BACKGROUND_COLOR);
 		gc.fillRect(0, startY, width, height);
-		gc.setFill(StockChart.labelColor);
+		gc.setFill(StockChart.CHART_LABEL_COLOR);
 		gc.fillText("RSI", 10, startY + 20, 100);
 		double yScale = height / (maxVal - minVal);
 		double xScale = width / (endIndex-startIndex);
 		gc.setLineWidth(1);
 		//30 70 bar
 		drawHorizontalBars(gc, startY, maxVal, yScale);
-		gc.setStroke(StockChart.graphColor);
+		gc.setStroke(StockChart.CHART_LINE_COLOR);
 		gc.setLineWidth(1);
 		for (int i = 0; i < rsi.length-1; i++) {
 			double x1 = (i * xScale);

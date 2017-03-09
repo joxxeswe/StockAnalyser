@@ -13,12 +13,10 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.joxxe.analyser.gui.MainWindow;
 import com.joxxe.analyser.model.stock.OHLC;
 /**
  * Class with static methods that crawls nordnet.se for info.
@@ -80,7 +78,7 @@ public class NordnetCrawler {
 					
 
 				} catch (JSONException e) {
-					MainWindow.output("Error parsing row (skipping):" + item.toString());
+					//MainWindow.output("Error parsing row (skipping):" + item.toString());
 				}
 
 			}
